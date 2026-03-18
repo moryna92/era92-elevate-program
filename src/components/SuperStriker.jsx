@@ -11,19 +11,20 @@ const C = {
   rust:'#e8402a', sage:'#2a9d6e', cream:'#faf7fc', mid:'#7a6a88', border:'#d8cce8',
 };
 
-function blankScores() {
-  return Object.fromEntries(TEAM_LIST.map(n => [n, { score:0, wins:0, reason:'No nominations yet' }]));
+function blankScores(teamList) {
+  return Object.fromEntries((teamList || TEAM).map(n => [n, { score:0, wins:0, reason:'No nominations yet' }]));
 }
 
-export default function SuperStriker({ currentUser, isAdmin, showToast, team: teamProp }) {
-  const TEAM_LIST = teamProp || TEAM;
+export default function SuperStriker({ currentUser, isAdmin, showToast, team: teamProp, pillars: pillarsProp }) {
+  const TEAM_LIST   = (teamProp && teamProp.length > 0) ? teamProp : TEAM;
+  const PILLAR_LIST = (pillarsProp && pillarsProp.length > 0) ? pillarsProp : PILLARS;
   const [tab, setTab]           = useState('board');
-  const [scores, setScores]     = useState(blankScores());
+  const [scores, setScores]     = useState(() => blankScores(TEAM_LIST));
   const [history, setHistory]   = useState([]);
   const [allVotes, setAllVotes] = useState({});
   const [announced, setAnn]     = useState({});
   const [votedMap, setVotedMap] = useState({});
-  const [taskBonus, setTaskBonus] = useState({}); // { weekId: [memberName, ...] }
+  const [taskBonus, setTaskBonus] = useState({});
   const [loaded, setLoaded]     = useState(false);
   const [tick, setTick]         = useState(0);
   const timerRef                = useRef(null);
@@ -316,7 +317,7 @@ export default function SuperStriker({ currentUser, isAdmin, showToast, team: te
 
         {/* NOMINATE */}
         {tab === 'vote' && (
-          <VoteTab weekNum={weekNum} weekId={weekId} votedMap={votedMap} submitVote={submitVote} status={status} cd={cd} cdLabel={cdLabel} C={C} team={TEAM_LIST} />
+          <VoteTab weekNum={weekNum} weekId={weekId} votedMap={votedMap} submitVote={submitVote} status={status} cd={cd} cdLabel={cdLabel} C={C} team={TEAM_LIST} pillarList={PILLAR_LIST} />
         )}
 
         {/* HISTORY */}
@@ -356,7 +357,7 @@ export default function SuperStriker({ currentUser, isAdmin, showToast, team: te
 }
 
 // ── VOTE TAB ─────────────────────────────────────────────────
-function VoteTab({ weekNum, weekId, votedMap, submitVote, status, cd, cdLabel, C, team }) {
+function VoteTab({ weekNum, weekId, votedMap, submitVote, status, cd, cdLabel, C, team, pillarList }) {
   const [voter, setVoter]   = useState('');
   const [nominee, setNom]   = useState('');
   const [pillars, setPills] = useState([]);
@@ -419,16 +420,16 @@ function VoteTab({ weekNum, weekId, votedMap, submitVote, status, cd, cdLabel, C
               <div style={{ fontSize:10, fontFamily:'DM Mono,monospace', letterSpacing:'1.5px', textTransform:'uppercase', color:C.mid, marginBottom:5 }}>Your Name</div>
               <select style={sel} value={voter} onChange={e => { setVoter(e.target.value); setErr(''); }}>
                 <option value="">— Who are you? —</option>
-                {(team||TEAM).map(n => <option key={n}>{n}</option>)}
+                {team.map(n => <option key={n}>{n}</option>)}
               </select>
               {alreadyVoted && <div style={{ fontSize:11, color:C.rust, marginBottom:8, fontFamily:'DM Mono,monospace' }}>⚠ You already voted this week.</div>}
               <div style={{ fontSize:10, fontFamily:'DM Mono,monospace', letterSpacing:'1.5px', textTransform:'uppercase', color:C.mid, marginBottom:5 }}>Nominate a Teammate</div>
               <select style={sel} value={nominee} onChange={e => { setNom(e.target.value); setErr(''); }}>
                 <option value="">— Select a teammate —</option>
-                {(team||TEAM).filter(n => n !== voter).map(n => <option key={n}>{n}</option>)}
+                {team.filter(n => n !== voter).map(n => <option key={n}>{n}</option>)}
               </select>
               <div style={{ fontSize:10, fontFamily:'DM Mono,monospace', letterSpacing:'1.5px', textTransform:'uppercase', color:C.mid, marginBottom:8 }}>Why do they deserve it?</div>
-              {PILLARS.map(p => {
+              {pillarList.map(p => {
                 const isSelected = pillars.includes(p.label);
                 return (
                   <div key={p.label} onClick={() => setPills(prev => prev.includes(p.label) ? prev.filter(x => x !== p.label) : [...prev, p.label])}
@@ -497,7 +498,7 @@ function HowItWorks({ C }) {
       <div style={{ display:'grid', gridTemplateColumns:'1fr 1fr', gap:16 }}>
         <div style={{ background:C.cream, border:`1px solid ${C.border}`, borderRadius:4, padding:20 }}>
           <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:2, textTransform:'uppercase', color:C.amber, marginBottom:14 }}>The 6 ERA92 Pillars</div>
-          {PILLARS.map(p => (
+          {pillarList.map(p => (
             <div key={p.label} style={{ display:'flex', gap:9, alignItems:'flex-start', padding:'8px 10px', background:C.paper, border:`1px solid ${C.border}`, borderRadius:3, marginBottom:7 }}>
               <span style={{ fontSize:16, flexShrink:0 }}>{p.icon}</span>
               <div><div style={{ fontWeight:600, fontSize:12, color:C.ink }}>{p.label}</div><div style={{ fontSize:10, color:C.mid, marginTop:1, lineHeight:1.4 }}>{p.desc}</div></div>
@@ -617,7 +618,7 @@ function SSAdmin({ weekNum, weekVotes, scores, taskBonus, C, forceAnnounce, rese
       </div>
       <div style={{ background:C.cream, border:`1px solid ${C.border}`, borderRadius:4, padding:18 }}>
         <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:'2.5px', textTransform:'uppercase', color:C.rust, marginBottom:12 }}>All Scores</div>
-        {(team||TEAM).map(n => {
+        {team.map(n => {
           const s = scores[n] || { score:0, wins:0 };
           const hasBonusThisWeek = prevBonusWinners.includes(n);
           return (
