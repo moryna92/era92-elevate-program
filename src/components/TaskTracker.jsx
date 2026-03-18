@@ -25,7 +25,7 @@ function defaultTasks() {
   ];
 }
 
-export default function TaskTracker({ currentUser, isAdmin, showToast, team: teamProp }) {
+export default function TaskTracker({ currentUser, isAdmin, showToast }) {
   const TEAM_LIST = teamProp || TEAM;
   const [tasks, setTasks]       = useState([]);
   const [loaded, setLoaded]     = useState(false);

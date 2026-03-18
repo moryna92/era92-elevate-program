@@ -15,11 +15,11 @@ function blankScores(teamList) {
   return Object.fromEntries((teamList || TEAM).map(n => [n, { score:0, wins:0, reason:'No nominations yet' }]));
 }
 
-export default function SuperStriker({ currentUser, isAdmin, showToast, team: teamProp, pillars: pillarsProp }) {
-  const TEAM_LIST   = (teamProp && teamProp.length > 0) ? teamProp : TEAM;
-  const PILLAR_LIST = (pillarsProp && pillarsProp.length > 0) ? pillarsProp : PILLARS;
+export default function SuperStriker({ currentUser, isAdmin, showToast }) {
+  const TEAM_LIST   = TEAM;
+  const PILLAR_LIST = PILLARS;
   const [tab, setTab]           = useState('board');
-  const [scores, setScores]     = useState(() => blankScores(TEAM_LIST));
+  const [scores, setScores]     = useState(() => blankScores(TEAM));
   const [history, setHistory]   = useState([]);
   const [allVotes, setAllVotes] = useState({});
   const [announced, setAnn]     = useState({});

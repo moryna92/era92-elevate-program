@@ -1,5 +1,22 @@
-import { useState } from 'react';
-import { PALETTE, uid } from '../constants.js';
+import { useState, useEffect } from 'react';
+import { PALETTE, uid, TEAM, INITIALS_MAP, PILLARS, TASK_BONUS_PTS, ADMIN_PW, SETTINGS_KEY } from '../constants.js';
+import { storageGet, storageSet } from '../storage.js';
+
+function buildDefaults() {
+  return {
+    team: TEAM.map((name, i) => ({
+      id: 'm' + i, name,
+      initials: (INITIALS_MAP[name] || name.split(' ').map(w=>w[0]).slice(0,2).join('')).toUpperCase(),
+      role: '', active: true,
+    })),
+    pillars: PILLARS.map((p, i) => ({ ...p, id: 'p' + i })),
+    taskBonusPts: TASK_BONUS_PTS,
+    adminPassword: ADMIN_PW,
+    orgName: 'ERA92 Elevate',
+    weeklyBonusEnabled: true,
+    votingSchedule: { openDay:1, openHour:7, closeDay:5, closeHour:18, announceHour:7, announceMin:30 },
+  };
+}
 
 function Section({ title, sub, children }) {
   return (
@@ -63,14 +80,25 @@ function Toggle({ value, onChange, label }) {
 
 const DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
 
-export default function AdminSettings({ settings, onSave, showToast }) {
-  const [local, setLocal]         = useState(() => JSON.parse(JSON.stringify(settings)));
+export default function AdminSettings({ showToast }) {
+  const [local, setLocal]         = useState(buildDefaults);
+  const [loaded, setLoaded]       = useState(false);
   const [tab, setTab]             = useState('team');
   const [saved, setSaved]         = useState(false);
   const [newMember, setNewMember] = useState({ name:'', initials:'', role:'' });
   const [newPillar, setNewPillar] = useState({ icon:'⭐', label:'', desc:'' });
   const [pwVisible, setPwVisible] = useState(false);
   const [confirmReset, setConfirmReset] = useState('');
+
+  useEffect(() => {
+    (async () => {
+      try {
+        const r = await storageGet(SETTINGS_KEY);
+        if (r && r.team) setLocal(prev => ({ ...prev, ...r }));
+      } catch(e) {}
+      setLoaded(true);
+    })();
+  }, []);
 
   function update(path, value) {
     const next = JSON.parse(JSON.stringify(local));
@@ -82,11 +110,13 @@ export default function AdminSettings({ settings, onSave, showToast }) {
   }
 
   async function saveAll() {
-    await onSave(local);
+    try { await storageSet(SETTINGS_KEY, local); } catch(e) {}
     setSaved(true);
     showToast('✓ Settings saved successfully');
     setTimeout(() => setSaved(false), 3000);
   }
+
+  if (!loaded) return <div style={{ display:'flex', alignItems:'center', justifyContent:'center', height:'60vh', color:'var(--text2)', fontFamily:'DM Mono,monospace', fontSize:12 }}>Loading settings…</div>;
 
   // Team
   function addMember() {

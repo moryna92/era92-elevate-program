@@ -1,74 +1,24 @@
 import { useState, useEffect, useCallback } from 'react';
-import { ADMIN_PW, SETTINGS_KEY, USER_KEY, ADMIN_KEY, TEAM as DEFAULT_TEAM,
-         INITIALS_MAP, PILLARS, TASK_BONUS_PTS, memberColor, getInitials } from './constants.js';
-import { storageGet, storageSet } from './storage.js';
+import { ADMIN_PW, USER_KEY, ADMIN_KEY, memberColor, getInitials } from './constants.js';
 import SuperStriker from './components/SuperStriker.jsx';
 import TaskTracker from './components/TaskTracker.jsx';
 import AdminDashboard from './components/AdminDashboard.jsx';
 import AdminSettings from './components/AdminSettings.jsx';
 import Toast from './components/Toast.jsx';
 
-function buildDefaultSettings() {
-  return {
-    team: DEFAULT_TEAM.map((name, i) => ({
-      id: 'm' + i,
-      name,
-      initials: (INITIALS_MAP[name] || name.split(' ').map(w=>w[0]).slice(0,2).join('')).toUpperCase(),
-      role: '',
-      active: true,
-    })),
-    pillars: PILLARS.map((p, i) => ({ ...p, id: 'p' + i })),
-    taskBonusPts: TASK_BONUS_PTS,
-    adminPassword: ADMIN_PW,
-    orgName: 'ERA92 Elevate',
-    weeklyBonusEnabled: true,
-    votingSchedule: { openDay:1, openHour:7, closeDay:5, closeHour:18, announceHour:7, announceMin:30 },
-  };
-}
-
 export default function App() {
-  const [currentUser, setCurrentUser] = useState('');
-  const [isAdmin, setIsAdmin]         = useState(false);
-  const [authed, setAuthed]           = useState(false);
-  const [activeApp, setActiveApp]     = useState('ss');
-  const [toast, setToast]             = useState(null);
-  const [settings, setSettings]       = useState(buildDefaultSettings());
+  const [user, setUser]       = useState('');
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [authed, setAuthed]   = useState(false);
+  const [app, setApp]         = useState('ss');
+  const [toast, setToast]     = useState(null);
 
-  // Load settings + check saved login on mount
   useEffect(() => {
-    (async () => {
-      try {
-        const r = await storageGet(SETTINGS_KEY);
-        if (r && typeof r === 'object' && r.team) {
-          setSettings(prev => ({ ...prev, ...r }));
-        }
-      } catch(e) { /* use defaults */ }
-
+    try {
       const u = localStorage.getItem(USER_KEY);
       const a = localStorage.getItem(ADMIN_KEY) === '1';
-      if (u) { setCurrentUser(u); setIsAdmin(a); setAuthed(true); }
-    })();
-
-    // Listen for danger-zone resets from AdminSettings
-    function onResetSS() {
-      import('./constants.js').then(({ SS_KEYS }) => {
-        import('./storage.js').then(({ storageSet: ss }) => {
-          [SS_KEYS.scores, SS_KEYS.history, SS_KEYS.votes, SS_KEYS.ann, SS_KEYS.voted, SS_KEYS.taskBonus]
-            .forEach(k => ss(k, {}));
-        });
-      });
-    }
-    function onResetSettings() {
-      storageSet(SETTINGS_KEY, buildDefaultSettings())
-        .then(() => window.location.reload())
-        .catch(() => window.location.reload());
-    }
-    window.addEventListener('era92:resetSS', onResetSS);
-    window.addEventListener('era92:resetSettings', onResetSettings);
-    return () => {
-      window.removeEventListener('era92:resetSS', onResetSS);
-      window.removeEventListener('era92:resetSettings', onResetSettings);
-    };
+      if (u) { setUser(u); setIsAdmin(a); setAuthed(true); }
+    } catch(e) {}
   }, []);
 
   const showToast = useCallback((msg) => {
@@ -76,133 +26,110 @@ export default function App() {
     setTimeout(() => setToast(null), 3500);
   }, []);
 
-  async function saveSettings(updated) {
-    setSettings(updated);
-    try { await storageSet(SETTINGS_KEY, updated); } catch(e) {}
+  function login(name) {
+    try { localStorage.setItem(USER_KEY, name); localStorage.removeItem(ADMIN_KEY); } catch(e) {}
+    setUser(name); setIsAdmin(false); setAuthed(true);
+    showToast('Welcome, ' + name.split(' ')[0] + '! ⚡');
   }
-
-  function handleEnter(name) {
-    setCurrentUser(name); setIsAdmin(false);
-    localStorage.setItem(USER_KEY, name);
-    localStorage.removeItem(ADMIN_KEY);
-    setAuthed(true);
-    showToast(`Welcome, ${name.split(' ')[0]}! ⚡`);
-  }
-  function handleAdminEnter() {
-    setCurrentUser('Admin'); setIsAdmin(true);
-    localStorage.setItem(USER_KEY, 'Admin');
-    localStorage.setItem(ADMIN_KEY, '1');
-    setAuthed(true);
+  function loginAdmin() {
+    try { localStorage.setItem(USER_KEY, 'Admin'); localStorage.setItem(ADMIN_KEY, '1'); } catch(e) {}
+    setUser('Admin'); setIsAdmin(true); setAuthed(true);
     showToast('Admin mode active ⚡');
   }
-  function handleLogout() {
+  function logout() {
     if (!window.confirm('Log out?')) return;
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(ADMIN_KEY);
-    setAuthed(false); setCurrentUser(''); setIsAdmin(false);
+    try { localStorage.removeItem(USER_KEY); localStorage.removeItem(ADMIN_KEY); } catch(e) {}
+    setUser(''); setIsAdmin(false); setAuthed(false);
   }
 
-  if (!authed) return <AuthScreen onEnter={handleEnter} onAdmin={handleAdminEnter} settings={settings} />;
+  if (!authed) return <Login onLogin={login} onAdmin={loginAdmin} />;
 
-  const team    = (settings?.team || []).filter(m => m.active).map(m => m.name);
-  const pillars = settings?.pillars;
-  const av      = isAdmin ? '⚡' : getInitials(currentUser);
-  const avColor = isAdmin ? 'var(--admin)' : memberColor(currentUser);
+  const av = isAdmin ? '⚡' : getInitials(user);
+  const avBg = isAdmin ? '#b97cf9' : memberColor(user);
 
   return (
-    <div style={{ minHeight:'100vh', background:'var(--bg)' }}>
-      <header style={S.header}>
-        <div style={S.logo}>
-          <img src="/logo.webp" alt="ERA92 Elevate" style={{ height:32, objectFit:'contain' }} />
+    <div style={{ minHeight: '100vh', background: '#0d0a0e' }}>
+      {/* HEADER */}
+      <div style={{ background: 'linear-gradient(90deg,#0d0a0e,#1a0814,#0d0a0e)', borderBottom: '1px solid rgba(232,24,90,.2)', height: 58, display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '0 20px', position: 'sticky', top: 0, zIndex: 200, gap: 10 }}>
+        <img src="/logo.webp" alt="ERA92 Elevate" style={{ height: 30, objectFit: 'contain' }} />
+
+        <div style={{ display: 'flex', gap: 3, background: 'rgba(255,255,255,.05)', border: '1px solid rgba(232,24,90,.2)', borderRadius: 8, padding: 3 }}>
+          {[['ss','⚡ Super Striker'],['task','📋 Tasks']].map(([id, label]) => (
+            <button key={id} onClick={() => setApp(id)} style={{ background: app===id ? 'linear-gradient(135deg,#e8185a,#e8402a)' : 'none', color: app===id ? '#fff' : '#9080a8', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 10, fontFamily: 'DM Mono,monospace', letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer', fontWeight: app===id ? 600 : 400 }}>{label}</button>
+          ))}
+          {isAdmin && [['admin','🔐 Admin'],['settings','⚙️ Settings']].map(([id, label]) => (
+            <button key={id} onClick={() => setApp(id)} style={{ background: app===id ? (id==='admin'?'#b97cf9':'rgba(255,255,255,.1)') : 'none', color: app===id ? '#fff' : '#9080a8', border: 'none', borderRadius: 6, padding: '6px 14px', fontSize: 10, fontFamily: 'DM Mono,monospace', letterSpacing: '1.5px', textTransform: 'uppercase', cursor: 'pointer', fontWeight: app===id ? 600 : 400 }}>{label}</button>
+          ))}
         </div>
-        <div style={S.switcher}>
-          <button style={{ ...S.btn, ...(activeApp==='ss'       ? S.btnSS       : {}) }} onClick={() => setActiveApp('ss')}>⚡ Super Striker</button>
-          <button style={{ ...S.btn, ...(activeApp==='task'     ? S.btnTask     : {}) }} onClick={() => setActiveApp('task')}>📋 Task Tracker</button>
-          {isAdmin && <>
-            <button style={{ ...S.btn, ...(activeApp==='admin'    ? S.btnAdmin    : {}) }} onClick={() => setActiveApp('admin')}>🔐 Admin</button>
-            <button style={{ ...S.btn, ...(activeApp==='settings' ? S.btnSettings : {}) }} onClick={() => setActiveApp('settings')}>⚙️ Settings</button>
-          </>}
-        </div>
-        <div style={S.right}>
-          <div style={S.live}><span style={S.liveDot}/>LIVE</div>
-          {isAdmin && <div style={S.adminBadge}>⚡ ADMIN</div>}
-          <div style={S.userBadge} onClick={handleLogout} title="Click to log out">
-            <div style={{ ...S.av, background:avColor }}>{av}</div>
-            <span>{isAdmin ? 'Admin' : currentUser.split(' ')[0]}</span>
+
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+          <span style={{ fontFamily: 'DM Mono,monospace', fontSize: 10, color: '#3ecf8e', display: 'flex', alignItems: 'center', gap: 4 }}>
+            <span style={{ width: 6, height: 6, background: '#3ecf8e', borderRadius: '50%', display: 'inline-block' }}/>LIVE
+          </span>
+          {isAdmin && <span style={{ background: 'rgba(185,124,249,.1)', border: '1px solid #b97cf9', borderRadius: 20, padding: '3px 10px', fontSize: 10, color: '#b97cf9', fontFamily: 'DM Mono,monospace' }}>⚡ ADMIN</span>}
+          <div onClick={logout} title="Click to log out" style={{ background: 'rgba(255,255,255,.05)', border: '1px solid rgba(232,24,90,.2)', borderRadius: 20, padding: '4px 11px', fontSize: 12, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: 5, color: '#f5f0f8' }}>
+            <div style={{ width: 20, height: 20, borderRadius: '50%', background: avBg, color: '#0d0a0e', fontSize: 9, fontWeight: 700, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Syne,sans-serif' }}>{av}</div>
+            <span>{isAdmin ? 'Admin' : user.split(' ')[0]}</span>
           </div>
         </div>
-      </header>
+      </div>
 
-      {activeApp === 'ss'       && <SuperStriker   currentUser={currentUser} isAdmin={isAdmin} showToast={showToast} team={team} pillars={pillars} settings={settings} />}
-      {activeApp === 'task'     && <TaskTracker    currentUser={currentUser} isAdmin={isAdmin} showToast={showToast} team={team} />}
-      {activeApp === 'admin'    && isAdmin && <AdminDashboard showToast={showToast} />}
-      {activeApp === 'settings' && isAdmin && <AdminSettings  settings={settings} onSave={saveSettings} showToast={showToast} />}
+      {/* CONTENT */}
+      {app === 'ss'       && <SuperStriker   currentUser={user} isAdmin={isAdmin} showToast={showToast} />}
+      {app === 'task'     && <TaskTracker    currentUser={user} isAdmin={isAdmin} showToast={showToast} />}
+      {app === 'admin'    && isAdmin && <AdminDashboard showToast={showToast} />}
+      {app === 'settings' && isAdmin && <AdminSettings  showToast={showToast} />}
 
       <Toast message={toast} />
     </div>
   );
 }
 
-// ── AUTH ──────────────────────────────────────────────────────
-function AuthScreen({ onEnter, onAdmin, settings }) {
+function Login({ onLogin, onAdmin }) {
   const [name, setName]     = useState('');
   const [showPw, setShowPw] = useState(false);
   const [pw, setPw]         = useState('');
-  const [pwErr, setPwErr]   = useState(false);
+  const [err, setErr]       = useState('');
 
-  function submitName() { if (name.trim()) onEnter(name.trim()); }
-  function submitAdmin() {
-    const correct = settings?.adminPassword || ADMIN_PW;
-    if (pw === correct) { onAdmin(); }
-    else { setPwErr(true); setPw(''); }
+  function submit() { if (name.trim()) onLogin(name.trim()); }
+  function submitPw() {
+    if (pw === ADMIN_PW) { onAdmin(); }
+    else { setErr('Incorrect password.'); setPw(''); }
   }
 
+  const inp = { width: '100%', background: 'rgba(255,255,255,.05)', border: '1px solid #352a42', borderRadius: 6, padding: '10px 12px', color: '#f5f0f8', fontFamily: 'DM Sans,sans-serif', fontSize: 13, outline: 'none', marginBottom: 10, display: 'block', boxSizing: 'border-box' };
+
   return (
-    <div style={S.overlay}>
-      <div style={S.card}>
-        <img src="/logo.webp" alt="ERA92 Elevate" style={{ height:48, objectFit:'contain', marginBottom:16 }} />
-        <div style={{ fontFamily:'Syne,sans-serif', fontWeight:800, fontSize:22, marginBottom:6 }}>
-          Team <span style={{ color: showPw ? 'var(--admin)' : 'var(--primary)' }}>Dashboard</span>
+    <div style={{ position: 'fixed', inset: 0, background: 'linear-gradient(135deg,#0d0a0e,#1a0814,#0d0a0e)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16 }}>
+      <div style={{ background: '#141018', border: '1px solid rgba(232,24,90,.2)', borderRadius: 16, padding: 36, width: '100%', maxWidth: 400, textAlign: 'center', boxShadow: '0 0 60px rgba(232,24,90,.08)' }}>
+        <img src="/logo.webp" alt="ERA92 Elevate" style={{ height: 44, objectFit: 'contain', marginBottom: 16 }} />
+        <div style={{ fontFamily: 'Syne,sans-serif', fontWeight: 800, fontSize: 22, color: '#f5f0f8', marginBottom: 6 }}>
+          Team <span style={{ color: showPw ? '#b97cf9' : '#e8185a' }}>Dashboard</span>
         </div>
+
         {!showPw ? (<>
-          <p style={S.sub}>Enter your name to access the team dashboard.</p>
-          <input style={S.inp} placeholder="Your full name e.g. Joyce Nabukenya" value={name}
-            onChange={e=>setName(e.target.value)} onKeyDown={e=>e.key==='Enter'&&submitName()} autoFocus />
-          <button style={S.authBtn} onClick={submitName}>Enter Dashboard →</button>
-          <button style={S.link} onClick={()=>setShowPw(true)}>🔐 Admin Login</button>
+          <p style={{ color: '#9080a8', fontSize: 12, marginBottom: 20, lineHeight: 1.6 }}>Enter your name to access the team dashboard.</p>
+          <input style={inp} placeholder="Your full name e.g. Joyce Nabukenya" value={name}
+            onChange={e => setName(e.target.value)} onKeyDown={e => e.key === 'Enter' && submit()} autoFocus />
+          <button onClick={submit} style={{ width: '100%', background: 'linear-gradient(135deg,#e8185a,#e8402a)', color: '#fff', border: 'none', borderRadius: 6, padding: '11px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', marginBottom: 10 }}>
+            Enter Dashboard →
+          </button>
+          <button onClick={() => setShowPw(true)} style={{ background: 'none', border: 'none', color: '#554466', fontSize: 11, cursor: 'pointer', fontFamily: 'DM Mono,monospace', textDecoration: 'underline' }}>
+            🔐 Admin Login
+          </button>
         </>) : (<>
-          <p style={S.sub}>Enter the admin password to access full management controls.</p>
-          <input style={S.inp} type="password" placeholder="Admin password" value={pw}
-            onChange={e=>{setPw(e.target.value);setPwErr(false);}} onKeyDown={e=>e.key==='Enter'&&submitAdmin()} autoFocus />
-          {pwErr && <div style={{ color:'var(--red)', fontSize:11, marginBottom:8, fontFamily:'DM Mono,monospace' }}>Incorrect password.</div>}
-          <button style={{ ...S.authBtn, background:'var(--admin)' }} onClick={submitAdmin}>Unlock Admin →</button>
-          <button style={S.link} onClick={()=>{setShowPw(false);setPwErr(false);}}>← Back</button>
+          <p style={{ color: '#9080a8', fontSize: 12, marginBottom: 20, lineHeight: 1.6 }}>Enter the admin password.</p>
+          <input style={inp} type="password" placeholder="Admin password" value={pw}
+            onChange={e => { setPw(e.target.value); setErr(''); }} onKeyDown={e => e.key === 'Enter' && submitPw()} autoFocus />
+          {err && <div style={{ color: '#f94040', fontSize: 11, marginBottom: 8, fontFamily: 'DM Mono,monospace' }}>{err}</div>}
+          <button onClick={submitPw} style={{ width: '100%', background: '#b97cf9', color: '#fff', border: 'none', borderRadius: 6, padding: '11px 0', fontSize: 14, fontWeight: 600, cursor: 'pointer', fontFamily: 'DM Sans,sans-serif', marginBottom: 10 }}>
+            Unlock Admin →
+          </button>
+          <button onClick={() => { setShowPw(false); setErr(''); }} style={{ background: 'none', border: 'none', color: '#554466', fontSize: 11, cursor: 'pointer', fontFamily: 'DM Mono,monospace', textDecoration: 'underline' }}>
+            ← Back
+          </button>
         </>)}
       </div>
     </div>
   );
 }
-
-// ── STYLES ────────────────────────────────────────────────────
-const S = {
-  header:   { background:'linear-gradient(90deg,#0d0a0e,#1a0814,#0d0a0e)', borderBottom:'1px solid rgba(232,24,90,.2)', padding:'0 22px', height:58, display:'flex', alignItems:'center', justifyContent:'space-between', position:'sticky', top:0, zIndex:300, gap:10, boxShadow:'0 2px 20px rgba(232,24,90,.08)' },
-  logo:     { display:'flex', alignItems:'center', flexShrink:0 },
-  switcher: { display:'flex', gap:2, background:'rgba(255,255,255,.05)', border:'1px solid rgba(232,24,90,.2)', borderRadius:8, padding:3 },
-  btn:      { background:'none', border:'none', borderRadius:6, color:'var(--text2)', fontFamily:'DM Mono,monospace', fontSize:10, letterSpacing:'1.5px', textTransform:'uppercase', padding:'6px 14px', cursor:'pointer', transition:'all .2s', whiteSpace:'nowrap' },
-  btnSS:       { background:'linear-gradient(135deg,#e8185a,#e8402a)', color:'#fff', fontWeight:600 },
-  btnTask:     { background:'var(--green)', color:'var(--ink)', fontWeight:600 },
-  btnAdmin:    { background:'var(--admin)', color:'#fff', fontWeight:600 },
-  btnSettings: { background:'var(--surface3)', color:'var(--text)', fontWeight:600, border:'1px solid var(--border2)' },
-  right:    { display:'flex', alignItems:'center', gap:8, flexWrap:'wrap' },
-  live:     { fontFamily:'DM Mono,monospace', fontSize:10, color:'var(--green)', display:'flex', alignItems:'center', gap:4, whiteSpace:'nowrap' },
-  liveDot:  { width:6, height:6, background:'var(--green)', borderRadius:'50%', display:'inline-block', animation:'pulse 2s infinite' },
-  adminBadge: { background:'rgba(185,124,249,.1)', border:'1px solid var(--admin)', borderRadius:20, padding:'3px 10px', fontSize:10, color:'var(--admin)', fontFamily:'DM Mono,monospace', letterSpacing:'1px' },
-  userBadge:  { background:'rgba(255,255,255,.05)', border:'1px solid rgba(232,24,90,.2)', borderRadius:20, padding:'4px 11px', fontSize:12, cursor:'pointer', display:'flex', alignItems:'center', gap:5, whiteSpace:'nowrap' },
-  av:       { width:20, height:20, borderRadius:'50%', color:'#fff', fontSize:9, fontWeight:700, display:'flex', alignItems:'center', justifyContent:'center', fontFamily:'Syne,sans-serif', flexShrink:0 },
-  overlay:  { position:'fixed', inset:0, background:'linear-gradient(135deg,#0d0a0e,#1a0814,#0d0a0e)', display:'flex', alignItems:'center', justifyContent:'center', padding:16, zIndex:400 },
-  card:     { background:'var(--surface)', border:'1px solid rgba(232,24,90,.2)', borderRadius:16, padding:36, width:'100%', maxWidth:400, textAlign:'center', boxShadow:'0 0 60px rgba(232,24,90,.08)' },
-  sub:      { color:'var(--text2)', fontSize:12, marginBottom:18, lineHeight:1.6 },
-  inp:      { width:'100%', background:'rgba(255,255,255,.05)', border:'1px solid var(--border2)', borderRadius:6, padding:'9px 12px', color:'var(--text)', fontFamily:'DM Sans,sans-serif', fontSize:13, outline:'none', marginBottom:10, display:'block' },
-  authBtn:  { width:'100%', background:'linear-gradient(135deg,#e8185a,#e8402a)', color:'#fff', border:'none', borderRadius:6, padding:'11px 0', fontSize:14, fontWeight:600, cursor:'pointer', fontFamily:'DM Sans,sans-serif', marginBottom:10 },
-  link:     { background:'none', border:'none', color:'var(--text3)', fontSize:11, cursor:'pointer', fontFamily:'DM Mono,monospace', textDecoration:'underline', display:'block', margin:'0 auto' },
-};
