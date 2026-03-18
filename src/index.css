@@ -1,33 +1,33 @@
 :root {
-  /* ERA92 Elevate — pink/coral brand theme */
-  --bg: #0d0a0e;
-  --surface: #141018;
-  --surface2: #1c1722;
-  --surface3: #231e2b;
-  --border: #2a2235;
-  --border2: #352a42;
-  --text: #f5f0f8;
-  --text2: #9080a8;
-  --text3: #554466;
+  /* ERA92 Elevate — brighter dark theme */
+  --bg: #1a1520;
+  --surface: #231e2b;
+  --surface2: #2d2738;
+  --surface3: #362f42;
+  --border: #3d3550;
+  --border2: #4a4060;
+  --text: #f0ecf8;
+  --text2: #b8a8d0;
+  --text3: #8070a0;
 
   /* ERA92 brand primaries */
   --primary: #e8185a;
   --primaryL: #ff4d82;
-  --primaryP: rgba(232,24,90,0.10);
+  --primaryP: rgba(232,24,90,0.12);
   --coral: #e8402a;
 
   /* --amber mapped to brand pink for compatibility */
   --amber: #e8185a;
   --amberL: #ff4d82;
-  --amberP: rgba(232,24,90,0.10);
+  --amberP: rgba(232,24,90,0.12);
 
   /* Functional */
   --green: #3ecf8e;
-  --blue: #4f9cf9;
+  --blue: #5aabff;
   --red: #f94040;
-  --purple: #b97cf9;
+  --purple: #c48fff;
   --rust: #e8402a;
-  --sage: #2a9d6e;
+  --sage: #2ab87a;
 
   /* Light surfaces (Super Striker cards) */
   --ink: #0d0a0e;
@@ -35,7 +35,7 @@
   --cream: #faf7fc;
   --mid: #7a6a88;
   --pborder: #d8cce8;
-  --admin: #b97cf9;
+  --admin: #c48fff;
 }
 
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }

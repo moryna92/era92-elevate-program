@@ -124,20 +124,16 @@ export default function AdminDashboard({ showToast }) {
   );
 
   return (
-    <div style={{ background:'var(--bg)', minHeight:'calc(100vh - 56px)', animation:'fadeUp .35s ease' }}>
+    <div style={{ background:'var(--bg)', minHeight:'calc(100vh - 58px)', animation:'fadeUp .35s ease' }}>
 
-      {/* ADMIN HERO BANNER */}
-      <div style={{ background:'linear-gradient(135deg, #1a0814 0%, #0d0a0e 60%, #1a080a 100%)', borderBottom:'1px solid rgba(232,24,90,0.2)', padding:'20px 28px 16px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:16 }}>
-          <img src="/logo.webp" alt="ERA92 Elevate" style={{ height:38, width:'auto', objectFit:'contain' }} />
-          <div style={{ width:1, height:32, background:'rgba(232,24,90,0.3)' }} />
-          <div>
-            <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:3, textTransform:'uppercase', color:'var(--primary)', marginBottom:5 }}>Private Admin Dashboard · Moreen Nassolo</div>
-            <div style={{ fontFamily:'Syne,sans-serif', fontSize:20, fontWeight:800, color:'var(--text)' }}>
-              Command <span style={{ background:'linear-gradient(135deg,#e8185a,#e8402a)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Centre</span>
-            </div>
-            <div style={{ fontSize:12, color:'var(--text2)', marginTop:2 }}>Full team visibility · Tasks + Super Striker · Confidential</div>
+      {/* ADMIN HERO BANNER — no logo, it's already in the header */}
+      <div style={{ background:'var(--surface)', borderBottom:'1px solid var(--border)', padding:'12px 28px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
+        <div>
+          <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:3, textTransform:'uppercase', color:'var(--primary)', marginBottom:4 }}>Private Admin Dashboard · Moreen Nassolo</div>
+          <div style={{ fontFamily:'Syne,sans-serif', fontSize:18, fontWeight:800, color:'var(--text)' }}>
+            Command <span style={{ background:'linear-gradient(135deg,#e8185a,#e8402a)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Centre</span>
           </div>
+          <div style={{ fontSize:11, color:'var(--text2)', marginTop:2 }}>Full team visibility · Tasks + Super Striker · Confidential</div>
         </div>
         <div style={{ display:'flex', gap:8, alignItems:'center', flexWrap:'wrap' }}>
           <div style={{ background:'rgba(62,207,142,.1)', border:'1px solid rgba(62,207,142,.3)', borderRadius:20, padding:'4px 12px', fontSize:10, color:'var(--green)', fontFamily:'DM Mono,monospace', letterSpacing:1, display:'flex', alignItems:'center', gap:5 }}>

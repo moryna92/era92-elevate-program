@@ -7,8 +7,8 @@ import {
 } from '../weekUtils.js';
 
 const C = {
-  ink:'#0d0a0e', paper:'#f5f0f8', amber:'#e8185a', amberL:'#ff4d82',
-  rust:'#e8402a', sage:'#2a9d6e', cream:'#faf7fc', mid:'#7a6a88', border:'#d8cce8',
+  ink:'#1a1520', paper:'#f5f0f8', amber:'#e8185a', amberL:'#ff4d82',
+  rust:'#e8402a', sage:'#2ab87a', cream:'#faf7fc', mid:'#8070a0', border:'#d8cce8',
 };
 
 function blankScores(teamList) {
@@ -208,10 +208,8 @@ export default function SuperStriker({ currentUser, isAdmin, showToast }) {
       <div style={{ background:'linear-gradient(135deg, #1a0814 0%, #0d0a0e 60%, #1a080a 100%)', padding:'24px 32px 18px', position:'relative', overflow:'hidden', borderBottom:'1px solid rgba(232,24,90,0.15)' }}>
         <div style={{ position:'absolute', top:-60, right:-40, width:250, height:250, border:'38px solid rgba(232,24,90,0.06)', borderRadius:'50%', pointerEvents:'none' }} />
         <div style={{ position:'absolute', bottom:-30, right:80, width:150, height:150, border:'24px solid rgba(232,64,42,0.05)', borderRadius:'50%', pointerEvents:'none' }} />
-        <div style={{ display:'flex', alignItems:'center', gap:16, marginBottom:10 }}>
-          <img src="/logo.webp" alt="ERA92 Elevate" style={{ height:36, width:'auto', objectFit:'contain' }} />
-          <div style={{ width:1, height:28, background:'rgba(232,24,90,0.3)' }} />
-          <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:3, textTransform:'uppercase', color:'var(--primary)' }}>2026 Performance Tracker</div>
+        <div style={{ display:'flex', alignItems:'center', gap:12, marginBottom:10 }}>
+          <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:3, textTransform:'uppercase', color:'var(--primary)' }}>ERA92 Elevate · 2026 Performance Tracker</div>
         </div>
         <h1 style={{ fontFamily:"'Playfair Display',serif", fontSize:'clamp(20px,3vw,34px)', fontWeight:900, lineHeight:1.05, color:C.paper }}>
           Super Striker <span style={{ background:'linear-gradient(135deg,#e8185a,#e8402a)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>of the Week</span>

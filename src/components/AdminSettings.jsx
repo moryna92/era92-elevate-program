@@ -169,18 +169,14 @@ export default function AdminSettings({ showToast }) {
   ];
 
   return (
-    <div style={{ background:'var(--bg)', minHeight:'calc(100vh - 56px)', animation:'fadeUp .3s ease' }}>
+    <div style={{ background:'var(--bg)', minHeight:'calc(100vh - 58px)', animation:'fadeUp .3s ease' }}>
 
-      {/* Hero */}
-      <div style={{ background:'linear-gradient(135deg,#1a0814,#0d0a0e)', borderBottom:'1px solid rgba(232,24,90,.2)', padding:'16px 28px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
-        <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-          <img src="/logo.webp" alt="ERA92 Elevate" style={{ height:32, objectFit:'contain' }} />
-          <div style={{ width:1, height:26, background:'rgba(232,24,90,.3)' }} />
-          <div>
-            <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:3, textTransform:'uppercase', color:'var(--primary)', marginBottom:3 }}>Admin Settings</div>
-            <div style={{ fontFamily:'Syne,sans-serif', fontSize:17, fontWeight:800, color:'var(--text)' }}>
-              Dashboard <span style={{ background:'linear-gradient(135deg,#e8185a,#e8402a)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Configuration</span>
-            </div>
+      {/* Page header — no logo, just title + save button */}
+      <div style={{ background:'var(--surface)', borderBottom:'1px solid var(--border)', padding:'12px 28px', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:10 }}>
+        <div>
+          <div style={{ fontFamily:'DM Mono,monospace', fontSize:9, letterSpacing:3, textTransform:'uppercase', color:'var(--primary)', marginBottom:3 }}>Admin Settings</div>
+          <div style={{ fontFamily:'Syne,sans-serif', fontSize:18, fontWeight:800, color:'var(--text)' }}>
+            Dashboard <span style={{ background:'linear-gradient(135deg,#e8185a,#e8402a)', WebkitBackgroundClip:'text', WebkitTextFillColor:'transparent' }}>Configuration</span>
           </div>
         </div>
         <SBtn onClick={saveAll} color={saved?'var(--green)':'var(--primary)'}>
