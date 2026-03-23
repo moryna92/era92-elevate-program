@@ -4,7 +4,7 @@ export const TEAM = [
   'Sera Lynn Elina','Henry Kisambira','Alicia Pieuse Lugano','Amos Bogere',
   'Joyce Nabukenya','Peter Mwanja','David Sekamanya','Timothy Kawanguzi',
   'Edward Kasule','Moreen Nassolo','Meshack','Charles Sekidde',
-  'Nicholas Onapa','Alexander Tumusiime'
+  'Nicholas Onapa','Alexander Tumusiime','Kelly Kizito'
 ];
 
 export const INITIALS_MAP = {
@@ -12,7 +12,7 @@ export const INITIALS_MAP = {
   'Amos Bogere':'AB','Joyce Nabukenya':'JN','Peter Mwanja':'PM',
   'David Sekamanya':'DS','Timothy Kawanguzi':'TK','Edward Kasule':'EK',
   'Moreen Nassolo':'MN','Meshack':'ME','Charles Sekidde':'CS',
-  'Nicholas Onapa':'NO','Alexander Tumusiime':'AT'
+  'Nicholas Onapa':'NO','Alexander Tumusiime':'AT','Kelly Kizito':'KK'
 };
 
 export const PALETTE = [
