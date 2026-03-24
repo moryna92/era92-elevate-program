@@ -63,7 +63,10 @@ export default function TaskTracker({ currentUser, isAdmin, showToast }) {
   }, []);
 
   const filtered = tasks.filter(t => {
-    if (curView === 'mine' && t.assignee !== currentUser) return false;
+    // Admin on board view sees everything unless they explicitly filter by member
+    if (curView === 'mine') {
+      if (t.assignee !== currentUser) return false;
+    }
     if (curPrio && t.priority !== curPrio) return false;
     if (curMember && t.assignee !== curMember) return false;
     return true;
@@ -133,9 +136,9 @@ export default function TaskTracker({ currentUser, isAdmin, showToast }) {
       {/* SIDEBAR */}
       <div style={{ width:206, background:'var(--surface)', borderRight:'1px solid var(--border)', padding:'14px 0', flexShrink:0, overflowY:'auto' }}>
         <SbSection label="Views">
-          <SbItem active={curView==='board'} onClick={() => setCurView('board')}>⊞ Board <SbCt>{tasks.length}</SbCt></SbItem>
-          <SbItem active={curView==='mine'}  onClick={() => setCurView('mine')}>👤 My Tasks <SbCt>{tasks.filter(t=>t.assignee===currentUser).length}</SbCt></SbItem>
-          {isAdmin && <SbItem active={curView==='admin'} admin onClick={() => setCurView('admin')}>⚡ Admin <SbCt style={{ background:'rgba(185,124,249,.15)', color:'var(--admin)' }}>ALL</SbCt></SbItem>}
+          <SbItem active={curView==='board'} onClick={() => { setCurView('board'); setCurMember(''); }}>⊞ {isAdmin ? 'All Tasks' : 'Board'} <SbCt>{tasks.length}</SbCt></SbItem>
+          <SbItem active={curView==='mine'}  onClick={() => { setCurView('mine'); setCurMember(''); }}>👤 My Tasks <SbCt>{tasks.filter(t=>t.assignee===currentUser).length}</SbCt></SbItem>
+          {isAdmin && <SbItem active={curView==='admin'} admin onClick={() => setCurView('admin')}>⚡ Admin Panel <SbCt style={{ background:'rgba(185,124,249,.15)', color:'var(--admin)' }}>ALL</SbCt></SbItem>}
         </SbSection>
         <SbSection label="Priority">
           <SbItem active={curPrio===''} onClick={() => setCurPrio('')}>◈ All</SbItem>
@@ -161,8 +164,12 @@ export default function TaskTracker({ currentUser, isAdmin, showToast }) {
           {/* header */}
           <div style={{ padding:'12px 18px 10px', borderBottom:'1px solid var(--border)', display:'flex', alignItems:'center', justifyContent:'space-between', flexShrink:0, gap:8 }}>
             <div>
-              <div style={{ fontFamily:'Syne,sans-serif', fontSize:17, fontWeight:700 }}>{curView==='mine'?'My Tasks':'Team Task Board'}</div>
-              <div style={{ fontSize:10, color:'var(--text2)', marginTop:1, fontFamily:'DM Mono,monospace' }}>All tasks · live · shared</div>
+              <div style={{ fontFamily:'Syne,sans-serif', fontSize:17, fontWeight:700 }}>
+                {curView==='mine' ? 'My Tasks' : curMember ? `${curMember.split(' ')[0]}'s Tasks` : 'Team Task Board'}
+              </div>
+              <div style={{ fontSize:10, color:'var(--text2)', marginTop:1, fontFamily:'DM Mono,monospace' }}>
+                {curMember ? `Filtered: ${curMember}` : 'All tasks · live · shared'}
+              </div>
             </div>
             <div style={{ display:'flex', gap:7 }}>
               <button onClick={() => openAdd()} style={btnStyle}>+ Add Task</button>
